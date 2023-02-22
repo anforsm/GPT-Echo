@@ -40,10 +40,12 @@ with open(r'listOfDecodes.txt', 'w') as fp:
 
 # Decode the codes back to audio
 with torch.no_grad():
-    decoded = model.decode(codes)
-decoded = decoded.squeeze(0)
+    frames = model.decode(codes)
+
+#decoded = decoded.squeeze(0)
+print(frames)
 
 # Save the decoded audio
-torchaudio.save("decoded.wav", decoded, model.sample_rate)
+# torchaudio.save("decoded.wav", decoded, model.sample_rate)
 
 #np.savetxt('myReadableText.txt', torch.Tensor(codes).numpy())
