@@ -1,0 +1,1 @@
+encodec -b 24 -f --hq --lm test_24k.wav test_output.ecdc 
