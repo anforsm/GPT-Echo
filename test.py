@@ -58,7 +58,8 @@ for (frame, scale) in frames:
 # print(len(values))
 # 12000 values
 # Generate 12000 random values between 0 and 1024
-values = [random.randint(0, 1023) for i in range(12000)]
+# values = [random.randint(0, 1023) for i in range(12000)]
+values = [100 for i in range(12000)]
 
 
 # print(values)
@@ -74,6 +75,7 @@ values = [random.randint(0, 1023) for i in range(12000)]
 # model segment stride = None
 this_segment_length = audio_length
 frame_length = int(math.ceil(this_segment_length / model.sample_rate * model.frame_rate))
+print("Frame length: ", frame_length)
 # frame_length = 1500
 scale = None
 # model.bits_per_codebook = 10
