@@ -48,8 +48,8 @@ def JsonMaker(file_wav_list,textfilesListClean):
     for ii in range(len(file_wav_list)):
         dictOfJSON = {}
         #print(ii)
-        dictOfJSON["Text:"] = "".join(textfilesListClean[ii])
-        dictOfJSON["Ljud:"] = file_wav_list[ii]
+        dictOfJSON["text:"] = "".join(textfilesListClean[ii])
+        dictOfJSON["ljud:"] = file_wav_list[ii]
         listOfDict.append(dictOfJSON)
 #print(listOfDict)
 
