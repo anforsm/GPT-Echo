@@ -23,7 +23,7 @@ class AudioTokenizer:
     def tokenize(self, audio_file):
         if (os.path.basename(audio_file).endswith(".sph") or os.path.basename(audio_file).endswith(".WAV")):
             audio_file = self.convert_SPH_to_wav(audio_file)
-        elif (os.path.basename(audio_file).endswith(".wav")):
+        elif (os.path.basename(audio_file).endswith(".wav") or os.path.basename(audio_file).endswith(".mp3")):
             pass
         else:
             raise Exception("File type not supported")
