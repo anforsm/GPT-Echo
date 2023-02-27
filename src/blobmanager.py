@@ -1,18 +1,38 @@
 import os
 import json
 
+from datasets import load_dataset
+from torch.utils.data.sampler import BatchSampler, RandomSampler
+
+cv_11 = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="train")
+batch_sampler = BatchSampler(RandomSampler(cv_11), batch_size=32, drop_last=False)
+# Save dataloader to later
+# dataloader = DataLoader(cv_11, batch_sampler=batch_sampler) 
+
 class BlobManager:
     def __init__(self):
         pass
     
     def create_blobs(self):
-        return self.create_blobs_timit()
+        return self.create_blobs_CV()
+        #return self.create_blobs_timit()
     
     def create_blob(self, prompt, audio_file):
         return {
             "text": prompt,
             "ljud": audio_file,
         }
+
+    def create_blobs_CV(self):
+        blobs = []
+        #cv_11.save_to_disk("data/CV")
+        # Loop through all data, and extract sentence and audio-path
+
+        for i in range(len(cv_11)):
+            blob = self.create_blob(cv_11[i]["sentence"], cv_11[i]["audio"]["path"])
+            blobs.append(blob)
+        
+        return blobs
     
     def create_blobs_timit(self):
         path = "./../data/TRAIN/DR1"

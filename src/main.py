@@ -16,9 +16,22 @@ def create_blobs():
     blobmanager.save_blobs_to_file(blobs, "./outputs/blobs.json")
     blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
 
+def test_blobs_cv():
+    blobs = blobmanager.create_blobs_CV()
+    #blobmanager.save_blobs_to_file(blobs, "./outputs/blobs.json")
+    #blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
+    #print(blobs)
+
+def downloader_CV_data():
+    from huggingface_hub import hf_hub_download
+    #hf_hub_download(repo_id="mozilla-foundation/common_voice_11_0", filename="fleurs.py", repo_type="dataset")
+    #blobmanager.save_blobs_to_file(blobs, "./outputs/blobs.json")
+    #blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
+    print(blobs)
+
 def test_decode_blob():
     tokens = blobmanager.load_blobs_from_file("./outputs/blobs_tokenized.json")[213]
     tokenizer.detokenize(tokens, "./outputs/test_decode_blob.wav", "./outputs/test_decode_blob.txt")
 
 if __name__ == "__main__":
-    test_decode()
+    create_blobs()
