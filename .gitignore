@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 *converted.wav
+data/CV/
+src/outputs/
