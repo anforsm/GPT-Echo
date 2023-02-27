@@ -33,7 +33,7 @@ def convert_blob_to_tokens(blob):
     audio_tokens = tokenizer.tokenize(audio)
 
     # Convert the prompt to tokens
-    text_tokens = tokenize_text(prompt)
+    text_tokens = tokenize_text("text: " + prompt + "\naudio: ")
 
     return text_tokens + audio_tokens
 
@@ -72,7 +72,7 @@ def tokenize_blobs():
 
 
 if __name__ == "__main__":
-    #tokenize_blobs()
+    tokenize_blobs()
 
     with open("tokens.json", "r") as f:
         tokens = json.load(f)
