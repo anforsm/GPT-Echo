@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*converted.wav
+data/CV/
+src/outputs/
