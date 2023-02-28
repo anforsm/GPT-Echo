@@ -13,8 +13,8 @@ def test_decode():
 
 def create_blobs():
     blobs = blobmanager.create_blobs()
-    blobmanager.save_blobs_to_file(blobs, "./outputs/blobs.json")
-    blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
+    blobmanager.save_blobs_to_file(blobs, "src/outputs/blobs.json")
+    #blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
 
 def test_blobs_cv():
     blobs = blobmanager.create_blobs_CV()
@@ -27,7 +27,7 @@ def downloader_CV_data():
     #hf_hub_download(repo_id="mozilla-foundation/common_voice_11_0", filename="fleurs.py", repo_type="dataset")
     #blobmanager.save_blobs_to_file(blobs, "./outputs/blobs.json")
     #blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
-    print(blobs)
+    #print(blobs)
 
 def test_decode_blob():
     tokens = blobmanager.load_blobs_from_file("./outputs/blobs_tokenized.json")[213]

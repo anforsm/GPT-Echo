@@ -28,10 +28,16 @@ class BlobManager:
         #cv_11.save_to_disk("data/CV")
         # Loop through all data, and extract sentence and audio-path
 
+        
         for i in range(len(cv_11)):
             blob = self.create_blob(cv_11[i]["sentence"], cv_11[i]["audio"]["path"])
             blobs.append(blob)
-        
+        '''
+        for i in range(3):
+            blob = self.create_blob(cv_11[i]["sentence"], cv_11[i]["audio"]["path"])
+            blobs.append(blob)
+        '''
+        #print(blobs)
         return blobs
     
     def create_blobs_timit(self):
