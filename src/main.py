@@ -16,10 +16,8 @@ def create_blobs():
     blobmanager.save_blobs_to_file(blobs, "src/outputs/blobs.json")
     #blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
 
-def test_blobs_cv():
-    blobs = blobmanager.create_blobs_CV()
-    #blobmanager.save_blobs_to_file(blobs, "./outputs/blobs.json")
-    #blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobs), "./outputs/blobs_tokenized.json")
+def tokenize_cv_blobs():
+    blobmanager.save_blobs_to_file(blobmanager.tokenize_blobs(tokenizer, blobmanager.load_blobs_from_file("src/outputs/blobs_rel_path.json")), "./outputs/blobs_tokenized.json")
     #print(blobs)
 
 def downloader_CV_data():
@@ -34,4 +32,5 @@ def test_decode_blob():
     tokenizer.detokenize(tokens, "./outputs/test_decode_blob.wav", "./outputs/test_decode_blob.txt")
 
 if __name__ == "__main__":
-    create_blobs()
+    #create_blobs()
+    tokenize_cv_blobs()
