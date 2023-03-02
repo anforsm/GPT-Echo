@@ -6,6 +6,33 @@ from sphfile import SPHFile
 import torchaudio
 import torch
 from typing import List
+import json
+
+class Translator:
+    def __init__(self):
+        
+        with open("inter_vocab.json", 'r') as fin:
+            self.vocab = json.load(fin)
+        
+        self.tokens = [i for i in range(65000,66024)] #ints over 64000? 1024 st iaf
+        self.emojiTs = list(self.vocab.values())
+
+
+        self.translatorE_T = {}
+        self.translatorT_E = {}
+        zipped = zip(self.emojiTs, self.tokens)
+        zippedlist = list(zipped)
+        for e,t in zippedlist:
+            self.translatorE_T[e] = t
+            self.translatorT_E[t] = e
+
+    def to_audiotokens(self,GPToutput):
+        tokens = [self.translatorE_T[emoj] for emoj in GPToutput]
+        return tokens
+
+    def from_audiotokens(self,encoded):
+        tokens = [self.translatorT_E[token] for token in encoded]
+        return tokens
 
 class AudioTokenizer:
     bandwidth_to_codebooks = {
@@ -20,6 +47,9 @@ class AudioTokenizer:
         self.vocab_start = vocab_start
         self.encodec_model = encodec_model
     
+    def translate_to_vocab(tokens,vocabfile):
+        pass
+
     def tokenize(self, audio_file):
         if (os.path.basename(audio_file).endswith(".sph") or os.path.basename(audio_file).endswith(".WAV")):
             audio_file = self.convert_SPH_to_wav(audio_file)
@@ -51,22 +81,26 @@ class AudioTokenizer:
 
         # Convert encoding to a list of tokens
         tokens = []
+        translator = Translator()
         for sample in range(number_of_samples):
             for codebook in range(number_of_codebooks):
-                token = frame[codebook, sample].tolist()
-                tokens.append(self.vocab_start + token)
+                token = frame[codebook, sample].tolist() # tal mellan 0-1023
+                tokens.append(self.vocab_start + token) #måste ändras
+                translated = translator.from_audiotokens(tokens) #ÄNDRAT
 
-        return tokens
+        return translated #ÄNDRAT
     
     def detokenize(self, tokens, audio_file):
+        translator = Translator()
+        translated = translator.to_audiotokens(tokens)
         number_of_codebooks = AudioTokenizer.bandwidth_to_codebooks[self.encodec_model.bandwidth]
-        number_of_samples = len(tokens) // number_of_codebooks
+        number_of_samples = len(translated) // number_of_codebooks
 
         frame = torch.zeros(1, number_of_codebooks, number_of_samples, dtype=torch.long)
 
         for sample in range(number_of_samples):
             for codebook in range(number_of_codebooks):
-                frame[0, codebook, sample] = tokens[sample * number_of_codebooks + codebook] - self.vocab_start
+                frame[0, codebook, sample] = translated[tokens[sample * number_of_codebooks + codebook]]
         
         frames = [(frame, None)]
         
