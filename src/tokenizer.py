@@ -14,7 +14,7 @@ class Translator:
         with open("inter_vocab.json", 'r') as fin:
             self.vocab = json.load(fin)
         
-        self.tokens = [i for i in range(65000,66024)] #ints over 64000? 1024 st iaf
+        self.tokens = [i for i in range(0,1024)] #ints over 64000? 1024 st iaf
         self.emojiTs = list(self.vocab.values())
 
 
@@ -85,7 +85,7 @@ class AudioTokenizer:
         for sample in range(number_of_samples):
             for codebook in range(number_of_codebooks):
                 token = frame[codebook, sample].tolist() # tal mellan 0-1023
-                tokens.append(self.vocab_start + token) #måste ändras
+                tokens.append(token)
                 translated = translator.from_audiotokens(tokens) #ÄNDRAT
 
         return translated #ÄNDRAT
@@ -97,13 +97,12 @@ class AudioTokenizer:
         number_of_samples = len(translated) // number_of_codebooks
 
         frame = torch.zeros(1, number_of_codebooks, number_of_samples, dtype=torch.long)
-
         for sample in range(number_of_samples):
             for codebook in range(number_of_codebooks):
-                frame[0, codebook, sample] = translated[tokens[sample * number_of_codebooks + codebook]]
+                frame[0, codebook, sample] = translated[sample * number_of_codebooks + codebook]
         
         frames = [(frame, None)]
-        
+
         with torch.no_grad():
             wav = self.encodec_model.decode(frames)
         
