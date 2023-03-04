@@ -131,3 +131,7 @@ dmypy.json
 *converted.wav
 data/CV/
 src/outputs/
+
+wandb/
+test-trainer/
+runs

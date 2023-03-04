@@ -90,9 +90,9 @@ class TextTokenizer:
     
 
 class Tokenizer:
-    def __init__(self):
+    def __init__(self, vocab_start = 65000):
         self.target_audio_bandwidth = 6
-        self.audio_vocab_start = 65000
+        self.audio_vocab_start = vocab_start
         self.gpt_model = "AI-Sweden-Models/gpt-sw3-126m"
         self.encodec_model = EncodecModel.encodec_model_24khz()
         self.encodec_model.set_target_bandwidth(self.target_audio_bandwidth)

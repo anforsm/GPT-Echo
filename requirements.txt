@@ -2,3 +2,4 @@ encodec
 sphfile
 transformers
 sentencepiece
+datasets

@@ -1,5 +1,6 @@
 import os
 import json
+from tqdm import tqdm
 
 class BlobManager:
     def __init__(self):
@@ -18,7 +19,7 @@ class BlobManager:
         path = "./../data/TRAIN/DR1"
         blobs = []
         # Loop through all folders in the path, each folder is a speaker
-        for speaker in os.listdir(path):
+        for speaker in tqdm(os.listdir(path), "Creating blobs"):
             speaker_path = os.path.join(path, speaker)
             # Loop through all files in the speaker folder
             for file in os.listdir(speaker_path):
@@ -41,7 +42,7 @@ class BlobManager:
         return tokenizer.tokenize(blob["ljud"], blob["text"])
     
     def tokenize_blobs(self, tokenizer, blobs):
-        tokens = [self.tokenize_blob(tokenizer, blob) for blob in blobs]
+        tokens = [self.tokenize_blob(tokenizer, blob) for blob in tqdm(blobs, "Tokenizing blobs")]
         return tokens
     
     def load_blobs_from_file(self, file):
