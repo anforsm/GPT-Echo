@@ -131,3 +131,9 @@ dmypy.json
 *converted.wav
 data/CV/
 src/outputs/
+gpt-sw3/
+wandb/
+distilgpt2-finetuned-common-voice/
+distilgpt2-finetuned-wikitext2/
+old/src/outputs/blobs_tokenized_vlarge.json.zip
+old/src/outputs/blobs_tokenized_vlarge.json
