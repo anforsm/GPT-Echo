@@ -40,9 +40,9 @@ tokenizer.add_tokens([f"audio_token_{i}" for i in range(1024)])
 model.resize_token_embeddings(len(tokenizer))
 
 dataset_train = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="train")
-dataset_train.map(prepare_dataset, desc="preprocess dataset")
+#dataset_train.map(prepare_dataset, desc="preprocess dataset")
 dataset_val = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="validation")
-dataset_val.map(prepare_dataset, desc="preprocess dataset")
+#dataset_val.map(prepare_dataset, desc="preprocess dataset")
 encodec_model = EncodecModel.encodec_model_24khz()
 encodec_model.set_target_bandwidth(1.5)
 
@@ -115,9 +115,9 @@ def main():
     datasets = datasets.filter(filter_function, num_proc=TOKENIZATION_N_JOBS, desc="Filtering dataset")
     # Print number of samples in train dataset
     print(len(datasets["train"]))
-    datasets["train"] = datasets["train"].map(lambda example: pad_function(tokenize_function(example)), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["train"].column_names, desc="Padding and Tokenizing training dataset")
+    datasets["train"] = datasets["train"].map(lambda example: pad_function(tokenize_function(prepare_dataset(example))), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["train"].column_names, desc="Padding and Tokenizing training dataset")
     index = 0
-    datasets["validation"] = datasets["validation"].map(lambda example: pad_function(tokenize_function(example, "dev")), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["validation"].column_names, desc="Padding and Tokenizing validation dataset")
+    datasets["validation"] = datasets["validation"].map(lambda example: pad_function(tokenize_function(prepare_dataset(example), "dev")), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["validation"].column_names, desc="Padding and Tokenizing validation dataset")
     datasets.save_to_disk("CV11_distilgpt2_3U_0D_100%.hf")
 
     trainer_args = TrainingArguments(
