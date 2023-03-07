@@ -9,6 +9,22 @@ import torchaudio
 import os
 from tqdm import tqdm
 
+
+def prepare_dataset(batch):
+  """Function to preprocess the dataset with the .map method"""
+  transcription = batch["sentence"]
+  
+  if transcription.startswith('"') and transcription.endswith('"'):
+    # we can remove trailing quotation marks as they do not affect the transcription
+    transcription = transcription[1:-1]
+  
+  if transcription[-1] not in [".", "?", "!"]:
+    # append a full-stop to sentences that do not end in punctuation
+    transcription = transcription + "."
+  
+  batch["sentence"] = transcription
+  return batch
+
 index = 0
 
 TOKENIZATION_N_JOBS = 10
@@ -24,8 +40,9 @@ tokenizer.add_tokens([f"audio_token_{i}" for i in range(1024)])
 model.resize_token_embeddings(len(tokenizer))
 
 dataset_train = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="train")
+dataset_train.map(prepare_dataset, desc="preprocess dataset")
 dataset_val = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="validation")
-
+dataset_val.map(prepare_dataset, desc="preprocess dataset")
 encodec_model = EncodecModel.encodec_model_24khz()
 encodec_model.set_target_bandwidth(1.5)
 
