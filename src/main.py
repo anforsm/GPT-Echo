@@ -25,6 +25,10 @@ def prepare_dataset(batch):
   batch["sentence"] = transcription
   return batch
 
+effects = [
+    ['reverse'],
+]
+
 index = 0
 
 TOKENIZATION_N_JOBS = 10
@@ -66,6 +70,9 @@ def tokenize_audio(audio_file_og, dataset_type="train"):
             except:
                 continue
 
+    wav, sr = torchaudio.sox_effects.apply_effects_tensor(wav, sr, effects, channels_first=True) #flip
+    wav = torchaudio.functional.vad(wav, sr)
+    wav, sr = torchaudio.sox_effects.apply_effects_tensor(wav, sr, effects, channels_first=True) #flip back
     wav = torchaudio.functional.vad(wav, sr)
     wav = convert_audio(wav, sr, encodec_model.sample_rate, encodec_model.channels)
     wav = wav.unsqueeze(0)
