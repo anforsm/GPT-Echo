@@ -68,7 +68,7 @@ def tokenize_audio(audio_file_og, dataset_type="train"):
             except:
                 continue
 
-
+    wav = torchaudio.functional.vad(wav, sr)
     wav = convert_audio(wav, sr, encodec_model.sample_rate, encodec_model.channels)
     wav = wav.unsqueeze(0)
 
