@@ -9,7 +9,9 @@ import torchaudio
 import os
 from tqdm import tqdm
 
-TOKENIZATION_N_JOBS = 4
+index = 0
+
+TOKENIZATION_N_JOBS = 10
 
 datasets.logging.set_verbosity(datasets.logging.ERROR)
 os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = 'true'
@@ -21,19 +23,35 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.add_tokens([f"audio_token_{i}" for i in range(1024)])
 model.resize_token_embeddings(len(tokenizer))
 
-dataset_train = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="train[:100]")
-dataset_val = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="validation[:10]")
+dataset_train = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="train")
+dataset_val = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="validation")
 
 encodec_model = EncodecModel.encodec_model_24khz()
 encodec_model.set_target_bandwidth(1.5)
 
-def tokenize_audio(audio_file, dataset_type="train"):
+def tokenize_audio(audio_file_og, dataset_type="train"):
+    global index
     # Append /en_train_0/ to the last directory of the path
-    audio_file = os.path.join(
-        os.path.dirname(audio_file), "en_" + dataset_type + "_0", os.path.basename(audio_file)
-    )
+    try:
+        audio_file = os.path.join(
+            os.path.dirname(audio_file_og), "en_" + dataset_type + "_" + str(index), os.path.basename(audio_file_og)
+        )
 
-    wav, sr = torchaudio.load(audio_file)
+        wav, sr = torchaudio.load(audio_file)
+    except:
+        for i in range(1, 24):
+            try:
+                audio_file = os.path.join(
+                    os.path.dirname(audio_file_og), "en_" + dataset_type + "_" + str(i), os.path.basename(audio_file_og)
+                )
+
+                wav, sr = torchaudio.load(audio_file)
+                index = i
+                break
+            except:
+                continue
+
+
     wav = convert_audio(wav, sr, encodec_model.sample_rate, encodec_model.channels)
     wav = wav.unsqueeze(0)
 
@@ -71,10 +89,19 @@ def pad_function(example):
     padded["labels"] = padded_inputs 
     return padded 
 
+def filter_function(example):
+    return example["up_votes"] > 2 and example["down_votes"] < 2
+
 def main():
+    global index
     datasets = DatasetDict({"train": dataset_train, "validation": dataset_val})
+    datasets = datasets.filter(filter_function, num_proc=TOKENIZATION_N_JOBS, desc="Filtering dataset")
+    # Print number of samples in train dataset
+    print(len(datasets["train"]))
     datasets["train"] = datasets["train"].map(lambda example: pad_function(tokenize_function(example)), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["train"].column_names, desc="Padding and Tokenizing training dataset")
+    index = 0
     datasets["validation"] = datasets["validation"].map(lambda example: pad_function(tokenize_function(example, "dev")), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["validation"].column_names, desc="Padding and Tokenizing validation dataset")
+    datasets.save_to_disk("CV11_distilgpt2_3U_0D_100%.hf")
 
     trainer_args = TrainingArguments(
         f"{model_name}-finetuned-common-voice",
@@ -83,7 +110,8 @@ def main():
         weight_decay=0.01,
         per_device_eval_batch_size=1,
         per_device_train_batch_size=1,
-        #push_to_hub=True,
+        push_to_hub=True,
+        save_steps=5000
     )
 
     trainer = Trainer(
@@ -95,7 +123,7 @@ def main():
 
     trainer.train()
 
-    #trainer.push_to_hub("trained on 100 samples")
+    trainer.push_to_hub("trained on samples with more than 2 upvotes and no downvotes")
 
     #tokenizer.push_to_hub(f"{model_name}-finetuned-common-voice", commit_message="tokenizer with audio tokens")
 
