@@ -40,9 +40,7 @@ tokenizer.add_tokens([f"audio_token_{i}" for i in range(1024)])
 model.resize_token_embeddings(len(tokenizer))
 
 dataset_train = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="train")
-#dataset_train.map(prepare_dataset, desc="preprocess dataset")
 dataset_val = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="validation")
-#dataset_val.map(prepare_dataset, desc="preprocess dataset")
 encodec_model = EncodecModel.encodec_model_24khz()
 encodec_model.set_target_bandwidth(1.5)
 
