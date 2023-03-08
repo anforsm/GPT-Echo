@@ -1,4 +1,6 @@
 encodec
 sphfile
 transformers
+datasets
 sentencepiece
+sox

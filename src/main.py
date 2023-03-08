@@ -10,21 +10,6 @@ import os
 from tqdm import tqdm
 
 
-def prepare_dataset(batch):
-  """Function to preprocess the dataset with the .map method"""
-  transcription = batch["sentence"]
-  
-  if transcription.startswith('"') and transcription.endswith('"'):
-    # we can remove trailing quotation marks as they do not affect the transcription
-    transcription = transcription[1:-1]
-  
-  if transcription[-1] not in [".", "?", "!"]:
-    # append a full-stop to sentences that do not end in punctuation
-    transcription = transcription + "."
-  
-  batch["sentence"] = transcription
-  return batch
-
 effects = [
     ['reverse'],
 ]
@@ -48,6 +33,13 @@ dataset_val = load_dataset("mozilla-foundation/common_voice_11_0", "en", split="
 encodec_model = EncodecModel.encodec_model_24khz()
 encodec_model.set_target_bandwidth(1.5)
 
+def trim_waveform_with_vad(waveform, sample_rate):
+    waveform = torchaudio.functional.vad(waveform, sample_rate)
+    waveform = torch.flip(waveform, dims=[1])
+    waveform = torchaudio.functional.vad(waveform, sample_rate)
+    waveform = torch.flip(waveform, dims=[1])
+    return waveform
+
 def tokenize_audio(audio_file_og, dataset_type="train"):
     global index
     # Append /en_train_0/ to the last directory of the path
@@ -70,10 +62,11 @@ def tokenize_audio(audio_file_og, dataset_type="train"):
             except:
                 continue
 
-    wav, sr = torchaudio.sox_effects.apply_effects_tensor(wav, sr, effects, channels_first=True) #flip
-    wav = torchaudio.functional.vad(wav, sr)
-    wav, sr = torchaudio.sox_effects.apply_effects_tensor(wav, sr, effects, channels_first=True) #flip back
-    wav = torchaudio.functional.vad(wav, sr)
+    #wav, sr = torchaudio.sox_effects.apply_effects_tensor(wav, sr, effects, channels_first=True) #flip
+    #wav = torchaudio.functional.vad(wav, sr)
+    #wav, sr = torchaudio.sox_effects.apply_effects_tensor(wav, sr, effects, channels_first=True) #flip back
+    #wav = torchaudio.functional.vad(wav, sr)
+    wav = trim_waveform_with_vad(wav, sr)
     wav = convert_audio(wav, sr, encodec_model.sample_rate, encodec_model.channels)
     wav = wav.unsqueeze(0)
 
@@ -114,22 +107,37 @@ def pad_function(example):
 def filter_function(example):
     return example["up_votes"] > 2 and example["down_votes"] < 2
 
+def preprocess_function(batch):
+    """Function to preprocess the dataset with the .map method"""
+    transcription = batch["sentence"]
+
+    if transcription.startswith('"') and transcription.endswith('"'):
+        transcription = transcription[1:-1]
+
+    if transcription[-1] not in [".", "?", "!"]:
+        # append a full-stop to sentences that do not end in punctuation
+        transcription = transcription + "."
+
+    batch["sentence"] = transcription
+    return batch
+
 def main():
     global index
     datasets = DatasetDict({"train": dataset_train, "validation": dataset_val})
     datasets = datasets.filter(filter_function, num_proc=TOKENIZATION_N_JOBS, desc="Filtering dataset")
     # Print number of samples in train dataset
     print(len(datasets["train"]))
-    datasets["train"] = datasets["train"].map(lambda example: pad_function(tokenize_function(prepare_dataset(example))), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["train"].column_names, desc="Padding and Tokenizing training dataset")
+    datasets["train"] = datasets["train"].map(lambda example: pad_function(tokenize_function(preprocess_function(example))), num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["train"].column_names, desc="Padding and Tokenizing training dataset")
     index = 0
-    datasets["validation"] = datasets["validation"].map(lambda example: pad_function(tokenize_function(prepare_dataset(example), "dev")), batch_size=10, num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["validation"].column_names, desc="Padding and Tokenizing validation dataset")
-    datasets.save_to_disk("CV11_distilgpt2_3U_0D_100%.hf")
+    datasets["validation"] = datasets["validation"].map(lambda example: pad_function(tokenize_function(preprocess_function(example), "dev")), num_proc=TOKENIZATION_N_JOBS, remove_columns=datasets["validation"].column_names, desc="Padding and Tokenizing validation dataset")
+    print(datasets)
+    datasets.save_to_disk("CV11_distilgpt2_3U_0D_PREPROC_100%.hf")
 
     trainer_args = TrainingArguments(
         f"{model_name}-finetuned-common-voice",
         evaluation_strategy="epoch",
-        learning_rate=2e-5,
-        weight_decay=0.01,
+        learning_rate=2e-4,
+        weight_decay=1e-4,
         per_device_eval_batch_size=1,
         per_device_train_batch_size=1,
         push_to_hub=True,
@@ -145,7 +153,7 @@ def main():
 
     trainer.train()
 
-    trainer.push_to_hub("trained on samples with more than 2 upvotes and no downvotes")
+    trainer.push_to_hub("trained on samples with more than 2 upvotes and no downvotes, also using preprocessed audio and text")
 
     #tokenizer.push_to_hub(f"{model_name}-finetuned-common-voice", commit_message="tokenizer with audio tokens")
 
