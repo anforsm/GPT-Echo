@@ -13,7 +13,7 @@ if __name__ == "__main__":
     datasets = load_dataset("anforsm/common_voice_11_clean_tokenized")
 
     trainer_args = TrainingArguments(
-        f"{model_name}-finetuned-common-voice",
+        f"anforsm/distilgpt2-finetuned-common-voice",
         evaluation_strategy="epoch",
         learning_rate=2e-4,
         weight_decay=1e-4,
