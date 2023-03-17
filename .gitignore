@@ -138,3 +138,9 @@ distilgpt2-finetuned-wikitext2/
 old/src/outputs/blobs_tokenized_vlarge.json.zip
 old/src/outputs/blobs_tokenized_vlarge.json
 *.hf/
+
+GPT-TTS/
+GPT-TTS-tokenizer/
+anforsm/
+model_A100/
+

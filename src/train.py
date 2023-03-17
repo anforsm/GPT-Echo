@@ -1,11 +1,11 @@
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer
 
-model_name = "distilgpt2"
+model_name = "anforsm/gpt2medium-finetuned-common-voice"
 
 if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained("gpt2-medium")
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.add_tokens([f"audio_token_{i}" for i in range(1024)])
     model.resize_token_embeddings(len(tokenizer))
@@ -13,11 +13,12 @@ if __name__ == "__main__":
     datasets = load_dataset("anforsm/common_voice_11_clean_tokenized")
 
     trainer_args = TrainingArguments(
-        f"anforsm/distilgpt2-finetuned-common-voice",
+        f"anforsm/gpt2medium-finetuned-common-voice",
         evaluation_strategy="epoch",
         learning_rate=2e-4,
         weight_decay=1e-4,
-        per_device_train_batch_size=1,
+        #per_device_train_batch_size=10,
+        per_device_train_batch_size=2,
         per_device_eval_batch_size=1,
         push_to_hub=True,
         save_steps=5000,
